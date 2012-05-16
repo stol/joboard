@@ -5,7 +5,8 @@ var http    = require('http'),
 	express = require('express'),
     moment  = require('moment'),
     _       = require('underscore'),
-    jenkins = require('jenkins')
+    jenkins = require('jenkins'),
+    iconv = require('iconv-lite')
 
 var providers = [
     {
@@ -54,6 +55,7 @@ var providers = [
             place  : '.workplace'
         }
     },
+    /*
     {
         name: 'Humancoders Ruby',
         url_list : 'http://jobs.humancoders.com/ruby',
@@ -86,6 +88,7 @@ var providers = [
             place  : '.location'
         }
     },
+    */
     {
         name: 'French web',
         url_list : 'http://emploi.frenchweb.fr/',
@@ -124,10 +127,12 @@ var offres = {},
 function load_provider(p, res)
 {
     moment.lang(p.date_lang);
-    var max = 1; 
+    var max = 100; 
     var i = 0;
 
     request({url: p.url_list}, function (error, response, body) {
+        if (p.enc)
+            body = iconv.encode(body, "UTF-8");
         jsdom.env({html: body, scripts: ['http://code.jquery.com/jquery-1.7.2.min.js']}, function(err, window){
             var $ = window.jQuery;
             
@@ -169,8 +174,9 @@ function load_provider(p, res)
                 if (++i > max)
                     return false;
             });
+            console.log("done "+(providers_done+1)+"/"+providers.length)
             if (++providers_done == providers.length){
-                res.end(']')
+                res.end(']');
             }
         });
     });
@@ -178,8 +184,18 @@ function load_provider(p, res)
 
 
 var app = express.createServer();
+app.set("view options", {layout: false});
+app.register('.html', {
+    compile: function(str, options){
+      return function(locals){
+        return str;
+      };
+    }
+});
+app.use(express.static(__dirname + '/public'));
 
-app.get('/', function(req, res){
+app.get('/offres', function(req, res){
+    providers_done = 0;
     res.charset = 'UTF-8';
     res.header('Content-Type', 'application/json');
     res.write('[null')
@@ -190,6 +206,12 @@ app.get('/', function(req, res){
 
     //res.send('Hello World');
 });
+
+app.get('/', function(req, res){
+    res.render('index.html');
+    res.end();
+});
+
 
 app.listen(3000);
 

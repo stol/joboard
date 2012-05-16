@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Joboard</title>
+  <meta name="description" content="">
+</head>
+
+<body>
+	<h1>Joboard</h1>
+
+	<p>Chargement...</p>
+
+	<table>
+		<th>Intitulé</th>
+		<th>date</th>
+	</table>
+
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="//underscorejs.org/underscore-min.js"></script>
+	<script src="https://raw.github.com/timrwood/moment/1.6.2/min/moment.min.js"></script>
+	<script>
+		$.get('/offres', function(response){
+			response.splice(0,1);
+
+			var offres = _.sortBy(response, function(o){
+				return -o.ts;
+			})
+
+			var html = '';
+			_.each(offres, function(o,i){
+				console.log(o);
+				html+='<tr>'
+
+				html+='<td>'+o.label+'</td>'
+				html+='<td>'+moment(o.ts).format('DD/MM/YYYY')+'</td>'
+
+				html+='</tr>'
+			})
+			$("table").html(html);
+		})
+	</script>
+</body>
+</html>
