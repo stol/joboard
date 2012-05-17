@@ -13,30 +13,31 @@
 
 	<table>
 		<th>Intitulé</th>
-		<th>date</th>
+		<th>Recruteur</th>
+		<th>Lieu</th>
+		<th>Date</th>
+		<th>Source</th>
 	</table>
 
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script src="//underscorejs.org/underscore-min.js"></script>
 	<script src="https://raw.github.com/timrwood/moment/1.6.2/min/moment.min.js"></script>
 	<script>
-		$.get('/offres', function(response){
-			response.splice(0,1);
-
-			var offres = _.sortBy(response, function(o){
-				return -o.ts;
-			})
-
+		moment.lang('fr');
+		$.get('/offres', function(offres){
 			var html = '';
 			_.each(offres, function(o,i){
-				console.log(o);
 				html+='<tr>'
 
-				html+='<td>'+o.label+'</td>'
+				html+='<td><a href="'+o.href+'">'+o.label+'</a></td>'
+				html+='<td>'+o.company+'</td>'
+				html+='<td>'+o.lieu+'</td>'
 				html+='<td>'+moment(o.ts).format('DD/MM/YYYY')+'</td>'
+				html+='<td>'+o.source+'</td>'
 
 				html+='</tr>'
 			})
+
 			$("table").html(html);
 		})
 	</script>
