@@ -79,10 +79,14 @@
 		})
 
 		$("#search input").on("keyup", function(e){
-			var q = $.trim($(this).val());
+			var q = $.trim($(this).val()).split(' ');
 			var temp = _.filter(offres, function(o){
 				var test_string = o.label+' '+o.place+' '+o.company+' '+o.source;
-				return test_string.toLowerCase().indexOf(q.toLowerCase())>=0;
+				for (var i=0; i < q.length; i++){
+					if (test_string.toLowerCase().indexOf(q[i].toLowerCase()) == -1)
+						break;
+				}
+				return i == q.length;
 			});
 
 			renderTable(temp);
