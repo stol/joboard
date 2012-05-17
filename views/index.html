@@ -12,11 +12,17 @@
 	<p>Chargement...</p>
 
 	<table>
-		<th>Intitulé</th>
-		<th>Recruteur</th>
-		<th>Lieu</th>
-		<th>Date</th>
-		<th>Source</th>
+		<thead>
+			<tr>
+				<th data-type="label">Intitulé</th>
+				<th data-type="company">Recruteur</th>
+				<th data-type="place">Lieu</th>
+				<th data-type="ts" data-dir="1">Date</th>
+				<th data-type="source">Source</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
 	</table>
 
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -24,22 +30,45 @@
 	<script src="https://raw.github.com/timrwood/moment/1.6.2/min/moment.min.js"></script>
 	<script>
 		moment.lang('fr');
-		$.get('/offres', function(offres){
+		var offres = [];
+
+		function renderTable(offres)
+		{
 			var html = '';
 			_.each(offres, function(o,i){
 				html+='<tr>'
 
-				html+='<td><a href="'+o.href+'">'+o.label+'</a></td>'
+				html+='<td><a href="'+o.href+'" target="_blank">'+o.label+'</a></td>'
 				html+='<td>'+o.company+'</td>'
-				html+='<td>'+o.lieu+'</td>'
+				html+='<td>'+o.place+'</td>'
 				html+='<td>'+moment(o.ts).format('DD/MM/YYYY')+'</td>'
 				html+='<td>'+o.source+'</td>'
 
 				html+='</tr>'
 			})
+			$("table tbody").html(html);
+		}
 
-			$("table").html(html);
+		$.get('/offres', function(response){
+			offres = response;
+			renderTable(offres);
 		})
+
+		$("th").css("cursor", "pointer").on("click", function(e){
+			var sort_key = $(this).data("type");
+			var sort_dir = $(this).data("dir") == 1 ? -1 : 1;
+
+			$(this).data("dir", sort_dir)
+
+			offres = _.sortBy(offres, sort_key)
+
+			if (sort_dir == -1)
+				offres.reverse();
+
+			renderTable(offres);
+			e.preventDefault();
+		})
+
 	</script>
 </body>
 </html>

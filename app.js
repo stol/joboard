@@ -164,7 +164,7 @@ app.get('/offres', function(req, res){
                         label : $(row).find(p.selectors.label).text().trim(),
                         company: $(row).find(p.selectors.company).text().trim(),
                         href: (p.url_item !== undefined ? p.url_item : p.url_list)+$(row).find(p.selectors.href).attr("href"),
-                        lieu: p.place_contents
+                        place: p.place_contents
                             ? $(row).find(p.selectors.place).contents().eq(p.place_contents).text()
                             : $(row).find(p.selectors.place).text().trim(),
                         source: p.name,
