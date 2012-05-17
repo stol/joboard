@@ -38,11 +38,13 @@
 	<script>
 		moment.lang('fr');
 		var offres = [];
+		var offres_displayed = [];
 
 		function renderTable(offres)
 		{
+			offres_displayed = offres;
 			var html = '';
-			_.each(offres, function(o,i){
+			_.each(offres_displayed, function(o,i){
 				html+='<tr>'
 
 				html+='<td><a href="'+o.href+'" target="_blank">'+o.label+'</a></td>'
@@ -69,18 +71,18 @@
 
 			$(this).data("dir", sort_dir)
 
-			offres = _.sortBy(offres, sort_key)
+			offres_displayed = _.sortBy(offres_displayed, sort_key)
 
 			if (sort_dir == -1)
-				offres.reverse();
+				offres_displayed.reverse();
 
-			renderTable(offres);
+			renderTable(offres_displayed);
 			e.preventDefault();
 		})
 
 		$("#search input").on("keyup", function(e){
 			var q = $.trim($(this).val()).split(' ');
-			var temp = _.filter(offres, function(o){
+			temp = _.filter(offres, function(o){
 				var test_string = o.label+' '+o.place+' '+o.company+' '+o.source;
 				for (var i=0; i < q.length; i++){
 					if (test_string.toLowerCase().indexOf(q[i].toLowerCase()) == -1)
