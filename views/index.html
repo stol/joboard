@@ -15,8 +15,9 @@
 		<form>
 			<input type="text" placeholder="Rechercher"/>
 		</form>
-
 	</div>
+
+	<p><span id="counter"></span></p>
 
 	<table style="display:none">
 		<thead>
@@ -37,7 +38,7 @@
 	<script src="https://raw.github.com/timrwood/moment/1.6.2/min/moment.min.js"></script>
 	<script>
 		moment.lang('fr');
-		var offres = [];
+		var offres_full = [];
 		var offres_displayed = [];
 
 		function renderTable(offres)
@@ -56,13 +57,17 @@
 				html+='</tr>'
 			})
 			$("table tbody").html(html);
+			$("#counter").text(
+				offres_displayed.length == 0 ? "Aucune offres"
+					: (offres_displayed.length == 1 ? "1 offre" : offres_displayed.length+" offres")
+			)
 		}
 
 		$.get('/offres', function(response){
-			offres = response;
+			offres_full = response;
 			$("#loading").remove();
 			$("table").show();
-			renderTable(offres);
+			renderTable(offres_full);
 		})
 
 		$("th").css("cursor", "pointer").on("click", function(e){
@@ -82,7 +87,7 @@
 
 		$("#search input").on("keyup", function(e){
 			var q = $.trim($(this).val()).split(' ');
-			temp = _.filter(offres, function(o){
+			temp = _.filter(offres_full, function(o){
 				var test_string = o.label+' '+o.place+' '+o.company+' '+o.source;
 				for (var i=0; i < q.length; i++){
 					if (test_string.toLowerCase().indexOf(q[i].toLowerCase()) == -1)
