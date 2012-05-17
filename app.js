@@ -91,7 +91,7 @@ providers.push({
 })
 
 providers.push({
-    name: 'Humancoders Ruby',
+    name: 'Humancoders',
     url_list : 'http://jobs.humancoders.com/',
     date_formater: ["DD MMM YYYY", "DD MMMM YYYY"],
     date_year : 2012,

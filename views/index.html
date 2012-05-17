@@ -9,38 +9,51 @@
 <body>
 	<h1>Joboard</h1>
 
-	<p id="loading">Chargement...</p>
-
-	<div id="search">
-		<form>
-			<input type="text" placeholder="Rechercher"/>
-		</form>
+	<div id="loading">
+		<p>Chargement...</p>
 	</div>
 
-	<p><span id="counter"></span></p>
+	<div id="loaded" style="display:none">
+		<form>
+			<input id="search" type="text" placeholder="Rechercher"/>
+		</form>
 
-	<table style="display:none">
-		<thead>
-			<tr>
-				<th data-type="label">Intitulé</th>
-				<th data-type="company">Recruteur</th>
-				<th data-type="place">Lieu</th>
-				<th data-type="ts" data-dir="1">Date</th>
-				<th data-type="source">Source</th>
-			</tr>
-		</thead>
-		<tbody>
-		</tbody>
-	</table>
+		<p><span id="counter"></span></p>
+		<p>
+		      <a href="#" id="refresh">Raffraichir les offres</a>
+		    | <a href="#" id="set-as-read">Marquer toutes les offres comme lues</a>
+			| <a href="#" id="set-as-unread">Vider le cache</a>
+		</p>
+
+		<table>
+			<thead>
+				<tr>
+					<th data-type="label">Intitulé</th>
+					<th data-type="company">Recruteur</th>
+					<th data-type="place">Lieu</th>
+					<th data-type="ts" data-dir="1">Date</th>
+					<th data-type="source">Source</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+	</div>
+
 
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 	<script src="//underscorejs.org/underscore-min.js"></script>
 	<script src="https://raw.github.com/timrwood/moment/1.6.2/min/moment.min.js"></script>
+	<script src="https://raw.github.com/d0ugal/locache/master/build/locache.0.2.0.min.js"></script>
 	<script>
 		moment.lang('fr');
 		var offres_full = [];
 		var offres_displayed = [];
 
+		/**
+		 * Rempli le tableau d'offres avec le tableau de d'offres donné en paramètres
+		 * @param array offres
+		 */
 		function renderTable(offres)
 		{
 			offres_displayed = offres;
@@ -48,13 +61,15 @@
 			_.each(offres_displayed, function(o,i){
 				html+='<tr>'
 
-				html+='<td><a href="'+o.href+'" target="_blank">'+o.label+'</a></td>'
-				html+='<td>'+o.company+'</td>'
-				html+='<td>'+o.place+'</td>'
-				html+='<td>'+moment(o.ts).format('DD/MM/YYYY')+'</td>'
-				html+='<td>'+o.source+'</td>'
+					+'<td><a href="'+o.href+'" target="_blank">'+o.label+'</a>'
+					+(o.fresh ? ' (NEW)' : '')
+					+'</td>'
+					+'<td>'+o.company+'</td>'
+					+'<td>'+o.place+'</td>'
+					+'<td>'+moment(o.ts).format('DD/MM/YYYY')+'</td>'
+					+'<td>'+o.source+'</td>'
 
-				html+='</tr>'
+				+'</tr>'
 			})
 			$("table tbody").html(html);
 			$("#counter").text(
@@ -63,20 +78,37 @@
 			)
 		}
 
-		$.get('/offres', function(response){
-			offres_full = response;
-			$("#loading").remove();
-			$("table").show();
-			renderTable(offres_full);
-		})
 
+		// Récupération du json des offres
+		function refresh()
+		{
+			$("#loading").show();
+			$("#loaded").hide();
+			$.get('/offres', function(response){
+				offres_full = response;
+
+				for(var i=0; i<offres_full.length; i++) {
+					offres_full[i].fresh = !(locache.get(offres_full[i].id))
+				}
+
+				$("#loaded").show();
+				$("#loading").hide();
+				renderTable(offres_full);
+			})
+		}
+
+		// Tri des colonnes
 		$("th").css("cursor", "pointer").on("click", function(e){
 			var sort_key = $(this).data("type");
 			var sort_dir = $(this).data("dir") == 1 ? -1 : 1;
 
 			$(this).data("dir", sort_dir)
 
-			offres_displayed = _.sortBy(offres_displayed, sort_key)
+			offres_displayed = _.sortBy(offres_displayed, function(o){
+				if (typeof(o[sort_key]) =='number')
+					return o[sort_key];
+				return o[sort_key].toLowerCase();
+			})
 
 			if (sort_dir == -1)
 				offres_displayed.reverse();
@@ -85,7 +117,8 @@
 			e.preventDefault();
 		})
 
-		$("#search input").on("keyup", function(e){
+		// Recherche
+		$("#search").on("keyup", function(e){
 			var q = $.trim($(this).val()).split(' ');
 			temp = _.filter(offres_full, function(o){
 				var test_string = o.label+' '+o.place+' '+o.company+' '+o.source;
@@ -99,6 +132,36 @@
 			renderTable(temp);
 		})
 
+		// Marquer les offres comme lues
+		$("#set-as-read").on("click", function(e){
+			for(var i=0; i<offres_full.length; i++) {
+				if (offres_full[i].fresh){
+					locache.set(offres_full[i].id.toString(), 1)
+					offres_full[i].fresh = 0;
+				}
+			}
+			renderTable(offres_full);
+			e.preventDefault();
+		})
+
+		// Vider le cache
+		$("#set-as-unread").on("click", function(e){
+			for(var i=0; i<offres_full.length; i++) {
+				offres_full[i].fresh = 1;
+				locache.remove(offres_full[i].id.toString())
+			}
+			renderTable(offres_full);
+			e.preventDefault();
+		})
+
+		// Raffraichir les offres
+		$("#refresh").on("click", function(e){
+			refresh();
+		});
+
+
+		// Main : on lance le get des offres !
+		refresh();
 	</script>
 </body>
 </html>
