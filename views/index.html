@@ -9,9 +9,16 @@
 <body>
 	<h1>Joboard</h1>
 
-	<p>Chargement...</p>
+	<p id="loading">Chargement...</p>
 
-	<table>
+	<div id="search">
+		<form>
+			<input type="text" placeholder="Rechercher"/>
+		</form>
+
+	</div>
+
+	<table style="display:none">
 		<thead>
 			<tr>
 				<th data-type="label">Intitulé</th>
@@ -51,6 +58,8 @@
 
 		$.get('/offres', function(response){
 			offres = response;
+			$("#loading").remove();
+			$("table").show();
 			renderTable(offres);
 		})
 
@@ -67,6 +76,15 @@
 
 			renderTable(offres);
 			e.preventDefault();
+		})
+
+		$("#search input").on("keyup", function(e){
+			var q = $.trim($(this).val());
+			var temp = _.filter(offres, function(o){
+				return o.label.toLowerCase().indexOf(q.toLowerCase())>=0;
+			});
+
+			renderTable(temp);
 		})
 
 	</script>
