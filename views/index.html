@@ -29,8 +29,8 @@
 			<thead>
 				<tr>
 					<th data-type="label">Intitulé</th>
-					<th data-type="company">Recruteur</th>
 					<th data-type="place">Lieu</th>
+					<th data-type="company">Recruteur</th>
 					<th data-type="ts" data-dir="1">Date</th>
 					<th data-type="source">Source</th>
 				</tr>
@@ -64,8 +64,8 @@
 					+'<td><a href="'+o.href+'" target="_blank">'+o.label+'</a>'
 					+(o.fresh ? ' (NEW)' : '')
 					+'</td>'
-					+'<td>'+o.company+'</td>'
 					+'<td>'+o.place+'</td>'
+					+'<td>'+o.company+'</td>'
 					+'<td>'+moment(o.ts).format('DD/MM/YYYY')+'</td>'
 					+'<td>'+o.source+'</td>'
 
