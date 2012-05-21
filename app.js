@@ -106,6 +106,24 @@ providers.push({
     }
 })
 
+providers.push({
+    name: 'developpez.com',
+    url_list : 'http://www.developpez.net/forums/f592/emploi-etudes-informatique/annonces-emplois/offres-demploi/',
+    url_item : '',
+    date_formater: "DD/MM/YYYY HH:mm",
+    date_lang : 'fr',
+    selectors: {
+        row    : '#threadbits_forum_592 tr:gt(2)',
+        label  : 'td:eq(1) div a',
+        date   : 'td:eq(2) div',
+        company: 'td:eq(1) div:eq(1)',
+        href   : 'td:eq(1) div a',
+        place  : '#unknown'
+    },
+    date_contents: [0,1]
+})
+
+
 var offres = [],
     offres_nb = 0,
     providers_done = 0
@@ -143,6 +161,7 @@ app.get("/test", function(req, res){
 
 })
 app.get('/offres', function(req, res){
+    console.log("---");
     providers_done = 0;
     offres = [];
     offres_nb = 0;
@@ -154,8 +173,9 @@ app.get('/offres', function(req, res){
         var max = 100; 
         var i = 0;
 
-        request({url: p.url_list, timeout: 2000}, function (error, response, body) {
+        request({url: p.url_list, timeout: 3000}, function (error, response, body) {
             if (error || !body){
+                console.log("Error on "+p.name);
                 if (++providers_done == providers.length){
                     offres = _.sortBy(offres, function(o){
                         return -o.ts;
@@ -206,6 +226,14 @@ app.get('/offres', function(req, res){
                     // Si la date est de la forme "x mois"
                     else if (res = date_str.match(/(\d+) mois/i)){
                         offre.ts = moment().subtract('months', res[1]).valueOf();
+                    }
+                    // Si la date est de la forme "Aujourd'hui 00h00"
+                    else if (res = date_str.match(/Aujourd'hui (\d+)h(\d+)/i)){
+                        offre.ts = moment().hours(res[1]).minutes(res[2]).valueOf();
+                    }
+                    // Si la date est de la forme "hier 00h00"
+                    else if (res = date_str.match(/Hier (\d+)h(\d+)/i)){
+                        offre.ts = moment().subtract('days', 1).hours(res[1]).minutes(res[2]).valueOf();
                     }
                     // sinon, on suit le formater du provider
                     else{
