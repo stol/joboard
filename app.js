@@ -155,7 +155,7 @@ app.get('/offres', function(req, res){
         var i = 0;
 
         request({url: p.url_list, timeout: 2000}, function (error, response, body) {
-            if (!body){
+            if (error || !body){
                 if (++providers_done == providers.length){
                     offres = _.sortBy(offres, function(o){
                         return -o.ts;
