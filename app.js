@@ -154,7 +154,17 @@ app.get('/offres', function(req, res){
         var max = 100; 
         var i = 0;
 
-        request({url: p.url_list}, function (error, response, body) {
+        request({url: p.url_list, timeout: 2000}, function (error, response, body) {
+            if (!body){
+                if (++providers_done == providers.length){
+                    offres = _.sortBy(offres, function(o){
+                        return -o.ts;
+                    })
+
+                    res.json(offres);
+                }
+                return;
+            }
             jsdom.env({html: body, scripts: ['http://code.jquery.com/jquery-1.7.2.min.js']}, function(err, window){
                 var $ = window.jQuery;
                 moment.lang(p.date_lang);
